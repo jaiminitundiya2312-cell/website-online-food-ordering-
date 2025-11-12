@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feastly - Full Menu & Ordering</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <style>
+        /* --- Variables & Reset --- */
+        :root {
+            --primary-color: #FF5722; /* Vibrant Orange */
+            --secondary-color: #263238; /* Dark Text */
+            --background-light: #f5f7fa;
+            --sidebar-width: 250px;
+            --success-color: #4CAF50; 
+            /* === NEW TRACKING COLORS === */
+            --progress-color: #007BFF;
+            --complete-color: #4CAF50;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--background-light);
+            color: var(--secondary-color);
+        }
+
+        /* --- 1. HEADER STYLING --- */
+        .main-header {
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 20px;
+        }
+
+        .logo {
+            color: var(--primary-color);
+            font-weight: 700;
+            font-size: 1.8rem;
+            cursor: pointer;
+        }
+
+        /* === NEW TRACKING BUTTON STYLE === */
+        .track-btn {
+            background: none;
+            border: none;
+            color: var(--secondary-color);
+            font-size: 1rem;
+            font-weight: 600;
+            margin-right: 25px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .track-btn:hover {
+            color: var(--primary-color);
+        }
+
+        /* Search Bar */
+        .search-bar {
+            flex-grow: 1;
+            max-width: 500px;
+            margin: 0 40px;
+            display: flex;
+            align-items: center;
+            background-color: #f0f0f0;
+            border-radius: 50px;
+            padding: 8px 15px;
+        }
+
+        .search-bar i { color: #888; margin-right: 10px; }
+        .search-bar input { border: none; background: transparent; width: 100%; padding: 5px 0; font-size: 1rem; outline: none; }
+
+        /* User Actions */
+        .user-actions { display: flex; align-items: center; }
+        .user-actions i { font-size: 1.5rem; color: var(--secondary-color); cursor: pointer; margin-right: 20px; }
+
+        .cart-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: background-color 0.3s;
+        }
+
+        .cart-btn:hover { background-color: #E64A19; }
+        .cart-count { margin-left: 8px; font-weight: 600; }
+
+        /* --- 2. MAIN LAYOUT CONTAINER --- */
+        .page-content-wrapper {
+            max-width: 1200px;
+            margin: 20px auto;
+            display: flex;
+            gap: 20px;
+            padding: 0 20px;
+        }
+
+        /* Sidebar Styling (Menu Categories) */
+        .sidebar {
+            width: var(--sidebar-width);
+            flex-shrink: 0;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            height: fit-content;
+            position: sticky;
+            top: 85px; /* Sticky below the header */
+        }
+
+        .sidebar h3 {
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .category-nav .nav-link {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: #666;
+            padding: 10px 0;
+            font-size: 1rem;
+            transition: color 0.2s, background-color 0.2s;
+            border-radius: 4px;
+        }
+
+        .category-nav .nav-link i { margin-right: 10px; width: 20px; text-align: center; }
+        .category-nav .nav-link:hover, .category-nav .nav-link.active {
+            color: var(--primary-color);
+            background-color: #fffaf7;
+        }
+
+        .filter-options { margin-top: 30px; }
+        .filter-options label {
+            display: block;
+            margin-bottom: 8px;
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+        
+        /* --- 3. MENU LISTING AREA --- */
+        .menu-listing {
+            flex-grow: 1;
+        }
+        
+        .menu-listing section {
+            margin-bottom: 40px; /* Spacing between menu sections */
+        }
+
+        .menu-listing h2 {
+            font-size: 1.8rem;
+            margin-bottom: 25px;
+            font-weight: 700;
+            color: var(--secondary-color);
+            padding-top: 20px; 
+            margin-top: -20px; 
+        }
+
+        .item-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .menu-card {
+            background-color: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .menu-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .menu-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .card-info {
+            padding: 15px;
+        }
+
+        .card-info h3 { font-size: 1.2rem; margin-bottom: 5px; font-weight: 600; }
+        .restaurant-name { font-size: 0.9rem; color: #888; margin-bottom: 15px; }
+
+        .rating-price { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .rating { color: goldenrod; font-weight: 600; font-size: 1rem; }
+        .rating i { margin-right: 5px; }
+        .price { font-size: 1.4rem; font-weight: 700; color: var(--primary-color); }
+
+        .add-btn {
+            width: 100%;
+            padding: 10px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+        
+        .add-btn i { margin-right: 5px; }
+        .add-btn:hover { background-color: #E64A19; }
+        
+        /* --- 4. CART PAGE STYLING --- */
+        #cart-page {
+            max-width: 800px;
+            margin: 0 auto;
+            flex-grow: 1; 
+        }
+
+        .cart-header {
+            font-size: 2rem;
+            margin-bottom: 30px;
+            border-bottom: 3px solid var(--primary-color);
+            padding-bottom: 10px;
+        }
+
+        .cart-item-list {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+
+        .cart-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .cart-item:last-child {
+            border-bottom: none;
+        }
+
+        .cart-item-img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-right: 20px;
+            flex-shrink: 0;
+        }
+
+        .item-details {
+            flex-grow: 1;
+        }
+
+        .item-details h4 {
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        .item-details p {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .item-price {
+            font-size: 1.1rem;
+            font-weight: 600;
+            width: 120px;
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        .item-quantity {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            width: 150px;
+        }
+
+        .quantity-control button {
+            background: #eee;
+            border: none;
+            width: 30px;
+            height: 30px;
+            font-size: 1rem;
+            cursor: pointer;
+            border-radius: 4px;
+            margin: 0 5px;
+            transition: background 0.2s;
+        }
+
+        .quantity-control button:hover {
+            background: #ddd;
+        }
+
+        .remove-item {
+            color: var(--primary-color);
+            cursor: pointer;
+            margin-left: 20px;
+        }
+
+        /* Cart Totals */
+        .cart-totals {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .total-line {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px dashed #eee;
+        }
+
+        .total-line:last-of-type {
+            border-bottom: none;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--secondary-color);
+            margin-top: 15px;
+        }
+
+        .checkout-btn {
+            width: 100%;
+            padding: 15px;
+            margin-top: 20px;
+            background-color: var(--success-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .checkout-btn:hover {
+            background-color: #388E3C;
+        }
+
+        /* --- 5. ORDER TRACKING STYLING (NEW SECTION) --- */
+        #tracking-page {
+            max-width: 900px;
+            margin: 0 auto;
+            flex-grow: 1;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .tracking-header {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            color: var(--primary-color);
+        }
+
+        .order-info {
+            display: flex;
+            justify-content: space-between;
+            background-color: var(--background-light);
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+        
+        /* The main timeline container */
+        .timeline {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            margin: 50px 0;
+            padding: 0 40px;
+        }
+
+        /* The horizontal line connecting steps */
+        .timeline::before {
+            content: '';
+            position: absolute;
+            top: 25px;
+            left: 50px;
+            right: 50px;
+            height: 3px;
+            background-color: #ddd;
+            z-index: 1;
+        }
+
+        /* The progress line (set to 0% for 'Order Placed') */
+        .timeline-progress {
+            content: '';
+            position: absolute;
+            top: 25px;
+            left: 50px;
+            width: 0%; /* UPDATED: Set to 0% */
+            height: 3px;
+            background-color: var(--complete-color);
+            z-index: 2;
+            transition: width 0.5s ease-in-out;
+        }
+
+        .timeline-step {
+            flex: 1;
+            text-align: center;
+            position: relative;
+            z-index: 3;
+        }
+
+        .step-icon {
+            width: 50px;
+            height: 50px;
+            line-height: 50px;
+            border-radius: 50%;
+            background-color: #ddd;
+            color: white;
+            margin: 0 auto 10px;
+            font-size: 1.2rem;
+            transition: background-color 0.3s;
+        }
+
+        .step-info p {
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        /* Styles for completed and current steps */
+        .timeline-step.completed .step-icon {
+            background-color: var(--complete-color);
+        }
+        .timeline-step.current .step-icon {
+            background-color: var(--primary-color);
+            box-shadow: 0 0 0 5px rgba(255, 87, 34, 0.3);
+        }
+
+        /* --- RESPONSIVENESS (Mobile View) --- */
+        @media (max-width: 850px) {
+            .sidebar { display: none !important; }
+            .header-content { flex-wrap: wrap; padding: 10px 15px; }
+            .logo { width: 100%; text-align: center; margin-bottom: 10px; }
+            .search-bar { margin: 0; width: 70%; max-width: none; }
+            .user-actions { width: 30%; justify-content: flex-end; }
+            .page-content-wrapper { padding: 0 15px; margin-top: 15px; }
+            .cart-item { flex-wrap: wrap; }
+            .item-price, .item-quantity { width: auto; text-align: left; margin-top: 10px; }
+            .item-price { order: 3; }
+            .item-quantity { order: 4; justify-content: flex-start; }
+            .item-details { width: calc(100% - 100px); }
+            .cart-item-img { margin-right: 10px; }
+            .remove-item { margin-left: auto; order: 5; }
+
+            /* Tracking Page Mobile Adjustments */
+            #tracking-page { padding: 15px; }
+            .order-info { flex-direction: column; align-items: flex-start; gap: 5px; }
+            .timeline { flex-direction: column; align-items: flex-start; margin: 30px 0; padding: 0; }
+            .timeline::before, .timeline-progress {
+                left: 25px;
+                top: 0;
+                bottom: 0;
+                width: 3px; /* Vertical line */
+                height: 100%;
+            }
+            .timeline-progress {
+                height: 0%; /* UPDATED: Set to 0% for vertical progress */
+                width: 3px;
+            }
+
+            .timeline-step {
+                text-align: left;
+                padding-left: 50px;
+                margin-bottom: 25px;
+            }
+            .step-icon {
+                position: absolute;
+                left: 0;
+                top: 0;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .item-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="main-header">
+        <div class="header-content">
+            <h1 class="logo" onclick="showPage('home-page')">Feastly</h1>
+            
+            <div class="search-bar">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search for dishes, restaurants, or cuisine...">
+            </div>
+            
+            <div class="user-actions">
+                <button class="track-btn" onclick="showPage('tracking-page')">Track Order</button>
+                <i class="fas fa-user-circle" title="Profile"></i>
+                <button class="cart-btn" title="View Cart" onclick="showPage('cart-page')">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count">3</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="page-content-wrapper">
+
+        <aside class="sidebar" id="sidebar-menu">
+            <nav class="category-nav">
+                <h3>Menu Categories</h3>
+                <a href="#section-popular" class="nav-link active"><i class="fas fa-fire"></i> Popular Items</a>
+                <a href="#section-burgers" class="nav-link"><i class="fas fa-burger"></i> Burgers & Sandwiches</a>
+                <a href="#section-pizza" class="nav-link"><i class="fas fa-pizza-slice"></i> Pizzas & Pasta</a>
+                <a href="#section-indian" class="nav-link"><i class="fas fa-utensils"></i> Indian Food</a> 
+                <a href="#section-dessert" class="nav-link"><i class="fas fa-ice-cream"></i> Desserts & Shakes</a>
+            </nav>
+
+            <div class="filter-options">
+                <h3>Quick Filters</h3>
+                <label><input type="checkbox"> Special Offers</label>
+                <label><input type="checkbox"> New Items</label>
+                <label><input type="checkbox"> Vegetarian</label>
+            </div>
+        </aside>
+
+        <main class="menu-listing" id="home-page">
+            
+            <section id="section-popular">
+                <h2>🔥 Popular Items</h2>
+                <div class="item-grid">
+                    <div class="menu-card">
+                        <img src="https://wallpapercave.com/wp/wp11267667.jpg" alt="Spicy Burger">
+                        <div class="card-info">
+                            <h3>Spicy Burger</h3>
+                            <p class="restaurant-name">Burger Joint Co.</p>
+                            <div class="rating-price">
+                                <span class="rating"><i class="fas fa-star"></i> 4.7</span>
+                                <span class="price">₹129</span>
+                            </div>
+                            <button class="add-btn"><i class="fas fa-plus"></i> Add to Cart</button>
+                        </div>
+                    </div>
+                    <div class="menu-card">
+                        <img src="https://fashionablefoodz.com/wp-content/uploads/2017/11/Gujarati-Food-1.jpg" alt="Gujrati Thali">
+                        <div class="card-info">
+                            <h3>Gujrati Thali</h3>
+                            <p class="restaurant-name">Spice Route</p>
+                            <div class="rating-price">
+                                <span class="rating"><i class="fas fa-star"></i> 4.9</span>
+                                <span class="price">₹250</span>
+                            </div>
+                            <button class="add-btn"><i class="fas fa-plus"></i> Add to Cart</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="section-burgers">
+                <h2>🍔 Burgers & Sandwiches</h2>
+                <div class="item-grid">
+                    <div class="menu-card">
+                        <img src="https://farm8.staticflickr.com/7526/16209855621_825570e2cc_o.jpg" alt="Classic Burger">
+                        <div class="card-info">
+                            <h3>Classic Burger</h3>
+                            <p class="restaurant-name">The Grill House</p>
+                            <div class="rating-price">
+                                <span class="rating"><i class="fas fa-star"></i> 4.4</span>
+                                <span class="price">₹150</span>
+                            </div>
+                            <button class="add-btn"><i class="fas fa-plus"></i> Add to Cart</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="section-pizza">
+                <h2>🍕 Pizzas & Pasta</h2>
+                <div class="item-grid">
+                    <div class="menu-card">
+                        <img src="https://www.engelvoelkers.com/wp-content/uploads/2014/07/pizza-stock.jpg" alt="Supreme Pepperoni Pizza">
+                        <div class="card-info">
+                            <h3>Supreme Pepperoni Pizza</h3>
+                            <p class="restaurant-name">Pizza King</p>
+                            <div class="rating-price">
+                                <span class="rating"><i class="fas fa-star"></i> 4.5</span>
+                                <span class="price">₹195</span>
+                            </div>
+                            <button class="add-btn"><i class="fas fa-plus"></i> Add to Cart</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="section-indian">
+                <h2>🍽️ Indian Food</h2>
+                <div class="item-grid">
+                    <div class="menu-card">
+                        <img src="https://i.pinimg.com/originals/ac/33/f9/ac33f92c54b33d9f204e3537fab328a5.jpg" alt="Gujrati Thali">
+                        <div class="card-info">
+                            <h3>Gujrati Thali</h3>
+                            <p class="restaurant-name">Honest</p>
+                            <div class="rating-price">
+                                <span class="rating"><i class="fas fa-star"></i> 4.5</span>
+                                <span class="price">₹300</span>
+                            </div>
+                            <button class="add-btn"><i class="fas fa-plus"></i> Add to Cart</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="section-dessert">
+                <h2>🍦 Desserts & Shakes</h2>
+                <div class="item-grid">
+                    <div class="menu-card">
+                        <img src="https://www.julieseatsandtreats.com/wp-content/uploads/2022/11/Chocolate-Lava-Cake-16-of-24.jpg" alt="Chocolate Lava Cake">
+                        <div class="card-info">
+                            <h3>Chocolate Lava Cake</h3>
+                            <p class="restaurant-name">Sweet Tooth</p>
+                            <div class="rating-price">
+                                <span class="rating"><i class="fas fa-star"></i> 4.8</span>
+                                <span class="price">₹170</span>
+                            </div>
+                            <button class="add-btn"><i class="fas fa-plus"></i> Add to Cart</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+        </main>
+        
+        <div id="cart-page" style="display: none;">
+            <h2 class="cart-header">Your Cart (3 Items)</h2>
+
+            <div class="cart-item-list">
+                <div class="cart-item">
+                    <img src="https://wallpapercave.com/wp/wp11267667.jpg" alt="Spicy Burger" class="cart-item-img">
+                    <div class="item-details">
+                        <h4>Spicy Burger</h4>
+                        <p>Burger Joint Co.</p>
+                    </div>
+                    <div class="item-quantity">
+                        <span class="quantity-control">
+                            <button>-</button>
+                            <span class="quantity-value">1</span>
+                            <button>+</button>
+                        </span>
+                    </div>
+                    <div class="item-price">₹129</div>
+                    <i class="fas fa-times remove-item" title="Remove Item"></i>
+                </div>
+
+                <div class="cart-item">
+                    <img src="https://fashionablefoodz.com/wp-content/uploads/2017/11/Gujarati-Food-1.jpg" alt="Gujrati Thali" class="cart-item-img">
+                    <div class="item-details">
+                        <h4>Gujrati Thali</h4>
+                        <p>Spice Route</p>
+                    </div>
+                    <div class="item-quantity">
+                        <span class="quantity-control">
+                            <button>-</button>
+                            <span class="quantity-value">1</span>
+                            <button>+</button>
+                        </span>
+                    </div>
+                    <div class="item-price">₹250</div>
+                    <i class="fas fa-times remove-item" title="Remove Item"></i>
+                </div>
+                
+                <div class="cart-item">
+                    <img src="https://www.engelvoelkers.com/wp-content/uploads/2014/07/pizza-stock.jpg" alt="Supreme Pepperoni Pizza" class="cart-item-img">
+                    <div class="item-details">
+                        <h4>Supreme Pepperoni Pizza</h4>
+                        <p>Pizza King</p>
+                    </div>
+                    <div class="item-quantity">
+                        <span class="quantity-control">
+                            <button>-</button>
+                            <span class="quantity-value">1</span>
+                            <button>+</button>
+                        </span>
+                    </div>
+                    <div class="item-price">₹195</div>
+                    <i class="fas fa-times remove-item" title="Remove Item"></i>
+                </div>
+            </div>
+
+            <div class="cart-totals">
+                <div class="total-line">
+                    <span>Subtotal</span>
+                    <span>₹574</span>
+                </div>
+                <div class="total-line">
+                    <span>Delivery Fee</span>
+                    <span>₹40</span>
+                </div>
+                <div class="total-line">
+                    <span>Tax (GST)</span>
+                    <span>₹28</span>
+                </div>
+                <div class="total-line">
+                    <span>**Grand Total**</span>
+                    <span>**₹642**</span>
+                </div>
+
+                <button class="checkout-btn" onclick="showPage('tracking-page')">Place Order <i class="fas fa-arrow-right"></i></button>
+            </div>
+        </div>
+
+        <div id="tracking-page" style="display: none;">
+            <h2 class="tracking-header"><i class="fas fa-motorcycle"></i> Track Your Feast</h2>
+            
+            <div class="order-info">
+                <span>**Order ID:** #238914</span>
+                <span>**Estimated Delivery:** 15 mins</span>
+                <span>**Restaurant:** Spice Route</span>
+            </div>
+
+            <div class="timeline">
+                <div class="timeline-progress" style="width: 0%;"></div> 
+                
+                <div class="timeline-step completed current">
+                    <div class="step-icon"><i class="fas fa-check"></i></div>
+                    <div class="step-info">
+                        <p>**Order Placed**</p>
+                        <small>**Current**</small>
+                    </div>
+                </div>
+
+                <div class="timeline-step">
+                    <div class="step-icon"><i class="fas fa-concierge-bell"></i></div>
+                    <div class="step-info">
+                        <p>Preparing Food</p>
+                        <small>Expected Soon</small>
+                    </div>
+                </div>
+
+                <div class="timeline-step">
+                    <div class="step-icon"><i class="fas fa-biking"></i></div>
+                    <div class="step-info">
+                        <p>Out for Delivery</p>
+                        <small>Approx. 2:00 PM</small>
+                    </div>
+                </div>
+
+                <div class="timeline-step">
+                    <div class="step-icon"><i class="fas fa-home"></i></div>
+                    <div class="step-info">
+                        <p>Delivered</p>
+                        <small>Approx. 2:10 PM</small>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 40px; text-align: center; padding: 20px; background-color: var(--background-light); border-radius: 8px;">
+                <h3>Awaiting Kitchen Confirmation</h3>
+                <p style="margin-top: 10px;">The restaurant is reviewing your order now.</p>
+                
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        function showPage(pageId) {
+            const homePage = document.getElementById('home-page');
+            const cartPage = document.getElementById('cart-page');
+            const trackingPage = document.getElementById('tracking-page'); 
+            const sidebar = document.getElementById('sidebar-menu');
+
+            // Hide all content wrappers
+            homePage.style.display = 'none';
+            cartPage.style.display = 'none';
+            trackingPage.style.display = 'none'; 
+            sidebar.style.display = 'none';
+
+            // Show the selected page and manage sidebar visibility
+            if (pageId === 'home-page') {
+                homePage.style.display = 'block';
+                // Show sidebar only if the screen is wider than the mobile breakpoint (850px)
+                if (window.innerWidth > 850) {
+                     sidebar.style.display = 'block';
+                }
+            } else if (pageId === 'cart-page') {
+                // Cart page should occupy the full main content space
+                cartPage.style.display = 'block';
+            } else if (pageId === 'tracking-page') { // Logic for the tracking page
+                trackingPage.style.display = 'block';
+            }
+        }
+
+        // Set the initial page view to 'home-page' when the content loads
+        document.addEventListener('DOMContentLoaded', () => {
+            showPage('home-page');
+        });
+    </script>
+</body>
+</html>
